@@ -3,9 +3,10 @@
 #include <vector>
 #include <iomanip>
 
-#define DEBUG
+#define MAIN
 
 #include "RegulatorPID.h"
+#include "ModelARX.h"//podmienić albo zrobić jedno repo
 
 #ifdef DEBUG
 
@@ -233,11 +234,36 @@ int main()
 #endif
 
 #ifdef MAIN
+static double lastARX = 0.0;
 
-using namespace std;
+double symFeedback(RegulatorPID& reg, ModelARX& arx, double wart_zadana) {
+	double uchyb = wart_zadana - lastARX;
+	double wyjReg = reg.symuluj(uchyb);
+	lastARX = arx.symuluj(wyjReg);
+	return lastARX;
+}
+
 
 int main()
 {
+	RegulatorPID reg1(0.4, 2.0);
+	ModelARX arx1({ -0.4 }, { 0.6 }, 1, 0.0);
+
+	std::cerr << "Test petli: ";
+
+	double syg;
+	//Generator sygnału
+	for (int i = 0; i < 30; i++) {
+		if (i == 0) {
+			syg = 0.0;
+		}
+		else {
+			syg = 1.0;
+		}
+
+		std::cerr << std::setw(2) << std::setprecision(2) << std::showpoint << symFeedback(reg1, arx1, syg) << " ";
+	}
+	std::cerr << std::endl;
 
 }
 #endif

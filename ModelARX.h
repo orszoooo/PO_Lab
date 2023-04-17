@@ -12,16 +12,16 @@ private:
 	std::deque<double> s_sygWe, s_sygWy, s_sygOpK;
 
 	double symZaklocenie(double u);
-	double odpModelu(std::vector<double> wielomian, std::deque<double> kolejkaSyg);
+	double odpModelu(std::vector<double>& wielomian, std::deque<double>& kolejkaSyg); //przekazanie przez referencje w celu unikniêcia kopiowania
+	void obslugaWej(double& u);
+	void obslugaWyj(double& y_i);
 public:
 	//Settery wspó³czynników wielomianów A i B
 	void setWspolWielA(std::vector<double> noweWspol);
 	void setWspolWielB(std::vector<double> noweWspol);
-	
+
 	void setOpoznienieT(unsigned int wartZadana);
 	void setOdchStd(double noweOdchStd);
-	void obslugaWej(double& u);
-	void obslugaWyj(double& y_i);
 	double symuluj(double u);
 
 	friend class Testy_ModelARX;
