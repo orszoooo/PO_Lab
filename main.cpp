@@ -247,8 +247,7 @@ double symFeedback(RegulatorPID& reg, ModelARX& arx, double wart_zadana) {
 int main()
 {
 	//TESTY
-	RegulatorPID_TESTY test1;
-	test1.uruchom(); //????
+	RegulatorPID_TESTY::uruchom();
 
 	RegulatorPID reg1(0.4, 2.0);
 	ModelARX arx1({ -0.4 }, { 0.6 }, 1, 0.0);
