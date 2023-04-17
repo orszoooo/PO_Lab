@@ -24,6 +24,9 @@
     <ClCompile Include="RegulatorPID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ObiektSISO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RegulatorPID.h">

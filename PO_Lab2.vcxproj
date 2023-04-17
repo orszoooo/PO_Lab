@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ModelARX.cpp" />
+    <ClCompile Include="ObiektSISO.cpp" />
     <ClCompile Include="RegulatorPID.cpp" />
   </ItemGroup>
   <ItemGroup>

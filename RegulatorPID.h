@@ -12,7 +12,7 @@ private:
 public:
 	double symuluj(double e_i) override;
 
-	//Settery
+	//Settery -- s¹ wolniejsze od listy inicjalizacyjnej ale czyni¹ kod spójniejszym
 	void set_k(double n_K);
 	void set_Ti(double n_Ti);
 	void set_Td(double n_Td);
@@ -21,4 +21,16 @@ public:
 	RegulatorPID(double P);
 	RegulatorPID(double P, double I);
 	RegulatorPID(double P, double I, double D);
+};
+
+class RegulatorPID_TESTY : public TESTY {
+private:
+	static void test_RegulatorP_brakPobudzenia();
+	static void test_RegulatorP_skokJednostkowy();
+	static void test_RegulatorPI_skokJednostkowy_1();
+	static void test_RegulatorPI_skokJednostkowy_2();
+	static void test_RegulatorPID_skokJednostkowy();
+
+public: 
+	static void uruchom();
 };
