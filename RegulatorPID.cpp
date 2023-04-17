@@ -10,13 +10,43 @@ double RegulatorPID::setUnsigned(double wart)
 	}
 }
 
-double RegulatorPID::symuluj(double e_i)
+
+double RegulatorPID::symP(double e_i)
 {
 	return s_k * e_i;
 }
 
-void RegulatorPID::set_k(double n_K)
-{
+double RegulatorPID::symI(double e_i) {
+	s_memI += e_i;
+
+	double u_i;
+	if (s_Ti > 0.0) {
+		u_i = 1 / s_Ti * s_memI;
+	}
+	else {
+		u_i = 0.0;
+	}
+	return u_i;
+}
+
+double RegulatorPID::symD(double e_i) {
+	double u_i;
+	if (s_Td > 0.0) {
+		u_i = s_Td * (e_i - s_memD);
+	}
+	else {
+		u_i = 0.0;
+	}
+	
+	s_memD = e_i;
+	return u_i;
+}
+
+double RegulatorPID::symuluj(double e_i){
+	return symP(e_i) + symI(e_i) + symD(e_i);
+}
+
+void RegulatorPID::set_k(double n_K){
 	s_k = setUnsigned(n_K);
 }
 

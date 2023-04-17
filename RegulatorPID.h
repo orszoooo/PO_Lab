@@ -3,9 +3,12 @@
 class RegulatorPID : ObiektSISO{
 private:
 	double s_k, s_Ti, s_Td;
-	double s_lastTi = 0.0, s_lastTd = 0.0;
+	double s_memI = 0.0, s_memD = 0.0;
 	double setUnsigned(double wart); //sprawdza czy zmienna przechowuje wartoœæ nieujemn¹, jeœli nie to zwraca 0.0.
 public:
+	double symP(double e_i);
+	double symI(double e_i);
+	double symD(double e_i);
 	double symuluj(double e_i) override;
 
 	//Settery
