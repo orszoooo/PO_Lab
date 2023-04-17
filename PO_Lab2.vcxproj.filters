@@ -21,6 +21,9 @@
     <ClCompile Include="ModelARX.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RegulatorPID.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RegulatorPID.h">
