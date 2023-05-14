@@ -24,6 +24,7 @@
     <ProjectGuid>{3643eb12-20cf-4a3d-aadf-70c17a2ddde0}</ProjectGuid>
     <RootNamespace>POLab2</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>PO_Lab</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
