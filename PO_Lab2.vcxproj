@@ -105,6 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,12 +132,27 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ModelARX.cpp" />
     <ClCompile Include="ObiektSISO.cpp" />
+    <ClCompile Include="Prostokat.cpp" />
     <ClCompile Include="RegulatorPID.cpp" />
+    <ClCompile Include="Sinusoida.cpp" />
+    <ClCompile Include="SkokJednostkowy.cpp" />
+    <ClCompile Include="Sygnal.cpp" />
+    <ClCompile Include="SygnalDekorator.cpp" />
+    <ClCompile Include="Szum.cpp" />
+    <ClCompile Include="Trojkat.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="ModelARX.h" />
     <ClInclude Include="ObiektSISO.h" />
+    <ClInclude Include="Prostokat.h" />
     <ClInclude Include="RegulatorPID.h" />
+    <ClInclude Include="Sinusoida.h" />
+    <ClInclude Include="SkokJednostkowy.h" />
+    <ClInclude Include="Sygnal.h" />
+    <ClInclude Include="SygnalDekorator.h" />
+    <ClInclude Include="Szum.h" />
+    <ClInclude Include="Trojkat.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

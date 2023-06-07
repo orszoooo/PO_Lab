@@ -63,22 +63,25 @@ void RegulatorPID::set_Td(double n_Td) {
 	s_Td = setUnsigned(n_Td);
 }
 
-RegulatorPID::RegulatorPID(double P)
+double RegulatorPID::get_k()
 {
-	set_k(P);
+	return s_k;
 }
 
-RegulatorPID::RegulatorPID(double P, double I)
+double RegulatorPID::get_Ti()
 {
-	set_k(P);
-	set_Ti(I);
+	return s_Ti;
+}
+
+double RegulatorPID::get_Td()
+{
+	return s_Td;
 }
 
 RegulatorPID::RegulatorPID(double P, double I, double D)
+	:s_k(P), s_Ti(I), s_Td(D)
 {
-	set_k(P);
-	set_Ti(I);
-	set_Td(D);
+
 }
 
 void RegulatorPID_TESTY::test_RegulatorP_brakPobudzenia()

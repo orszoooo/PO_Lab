@@ -19,9 +19,16 @@ public:
 	//Settery wspó³czynników wielomianów A i B
 	void setWspolWielA(std::vector<double> noweWspol);
 	void setWspolWielB(std::vector<double> noweWspol);
-
 	void setOpoznienieT(unsigned int wartZadana);
 	void setOdchStd(double noweOdchStd);
+
+	//Gettery -- zapis do JSON
+	std::vector<double> getWspolWielA();
+	std::vector<double> getWspolWielB();
+	unsigned int getOpoznienieT();
+	double getOdchStd();
+
+
 	double symuluj(double u);
 
 	friend class Testy_ModelARX;

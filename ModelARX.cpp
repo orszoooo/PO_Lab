@@ -50,6 +50,26 @@ void ModelARX::setOdchStd(double noweOdchStd) {
 	}
 }
 
+std::vector<double> ModelARX::getWspolWielA()
+{
+	return s_wspolWielA;
+}
+
+std::vector<double> ModelARX::getWspolWielB()
+{
+	return s_wspolWielB;
+}
+
+unsigned int ModelARX::getOpoznienieT()
+{
+	return s_k;
+}
+
+double ModelARX::getOdchStd()
+{
+	return s_odchStd;
+}
+
 void ModelARX::obslugaWej(double& u)
 {
 	//Obs³uga opóŸnienia wejœcia

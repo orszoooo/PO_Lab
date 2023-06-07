@@ -17,10 +17,13 @@ public:
 	void set_Ti(double n_Ti);
 	void set_Td(double n_Td);
 
+	//Gettery -- zapis do pliku JSON
+	double get_k();
+	double get_Ti();
+	double get_Td();
+
 	//Konstruktory
-	RegulatorPID(double P);
-	RegulatorPID(double P, double I);
-	RegulatorPID(double P, double I, double D);
+	RegulatorPID(double P, double I = 0.0, double D = 0.0);
 };
 
 class RegulatorPID_TESTY : public TESTY {

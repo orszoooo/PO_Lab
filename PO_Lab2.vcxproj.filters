@@ -27,16 +27,61 @@
     <ClCompile Include="ObiektSISO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Prostokat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sinusoida.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SkokJednostkowy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sygnal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SygnalDekorator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Szum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Trojkat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RegulatorPID.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="Prostokat.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ObiektSISO.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="Sinusoida.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SkokJednostkowy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sygnal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SygnalDekorator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Szum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Trojkat.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ModelARX.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObiektSISO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RegulatorPID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
