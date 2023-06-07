@@ -248,6 +248,10 @@ int main()
 static double lastARX = 0.0;
 std::mt19937 Szum::generator; //Szum.h
 
+void ZapisDoPliku(std::ofstream& out_file, std::filesystem::path& path, json& j_out);
+
+bool sprawdzCzyIstniejeFolder(std::filesystem::path& path, std::string& response);
+
 double symFeedback(RegulatorPID& reg, ModelARX& arx, double wart_zadana) {
 	double uchyb = wart_zadana - lastARX;
 	double wyjReg = reg.symuluj(uchyb);
@@ -268,10 +272,11 @@ int main(int p_argc, const char** p_argv)
 
 	std::cout << "Odczyt: " << p_argv[1] << std::endl;
 	auto input_path = std::filesystem::path(p_argv[1]);
-	std::ifstream f("db/config.json");
+	std::ifstream f(input_path);
 
 	std::cout << std::string(30, '=') << "TESTY JEDNOSTKOWE" << std::string(32, '=') << std::endl;
 
+	//Parametry domyślne
 	//PID
 	double p = 0.5;
 	double i = 0.1;
@@ -380,36 +385,97 @@ int main(int p_argc, const char** p_argv)
 	std::cout << std::string(80, '=') << std::endl;
 	//Zapis do pliku konfiguracyjnego
 	std::string response = "";
-	std::cout << "Czy zapisac parametry regulatora i modelu do pliku? (y/N)" << std::endl;
+	std::cout << "Czy zapisac parametry regulatora i modelu do pliku? (y/N): ";
 	std::cin >> response;
+	std::cout << std::endl;
 
 	if (response.find("y") != std::string::npos) {
-		std::cout << "Podaj sciezke do folderu docelowego(zapis jako 'config.json'): ";
+		std::cout << "Podaj sciezke do folderu docelowego: ";
 		std::cin >> response;
 		std::cout << std::endl;
 		auto path = std::filesystem::path(response);
-		path += "/config.json";
 
 		if (!path.empty()) {
+			
 			json j_out;
 			j_out["PID"] = { {"P",reg1.get_k()},{"I", reg1.get_Ti()}, {"D",reg1.get_Td()} };
 			j_out["ARX"] = { {"A", arx1.getWspolWielA() }, {"B", arx1.getWspolWielB() }, {"k", arx1.getOpoznienieT() }, {"OdchStd", arx1.getOdchStd() } };
 			j_out["Skok Jednostkowy"] = { {"Amplituda", amplitudaSkokJed}, {"Czas skoku", czasSkoku}, {"Start", startSkokJed}, {"Koniec", koniecSkokJed} };
-			j_out["Sinusoida"] = { {"Ampltuda", amplitudaSin}, {"Okres", okres}, {"Start", startSin}, {"Koniec", koniecSin} };
+			j_out["Sinusoida"] = { {"Amplituda", amplitudaSin}, {"Okres", okres}, {"Start", startSin}, {"Koniec", koniecSin} };
 			j_out["Szum"] = { {"Start", startSzum}, {"Koniec", koniecSzum} };
 
-			std::ofstream out_file(path);
-			if (out_file) {
-				std::cout << "Zapisano! :)" << std::endl;
-				out_file << std::setw(4) << j_out << std::endl;
+			//Sprawdzenie czy folder istnieje
+			bool folder_exists = sprawdzCzyIstniejeFolder(path, response);;
+			
+			//Zapis do pliku
+			std::cout << "Podaj nazwe pliku(musi konczyc sie na .json!): ";
+			std::cin >> response;
+			std::cout << std::endl;
+
+			std::ofstream out_file;
+			path += "\\" + response;
+			if (std::filesystem::exists(path)) 
+			{
+				std::cout << "Uwaga! Chcesz nadpisac istniejacy plik! Czy chcesz kontynuowac? (y/N): ";
+				std::cin >> response;
+				std::cout << std::endl;
+
+				if (response.find("y") != std::string::npos) 
+				{
+					ZapisDoPliku(out_file, path, j_out);
+				}
+				else 
+				{
+					std::cout << "Anulowano zapis do pliku!" << std::endl;
+				}
 				out_file.close();
 			}
-			else {
-				std::cout << "Zapis zakonczony niepowodzeniem! :(" << std::endl;
+			else 
+			{
+				ZapisDoPliku(out_file, path, j_out);
 			}
 			
 		}
 		
+	}
+}
+bool sprawdzCzyIstniejeFolder(std::filesystem::path& path, std::string& response)
+{
+	if (!std::filesystem::exists(path))
+	{
+		std::cout << "Uwaga! Podany katalog! Czy chcesz kontynuowac i utworzyć katalog? (y/N): ";
+		std::cin >> response;
+		std::cout << std::endl;
+
+		if (response.find("y") != std::string::npos)
+		{
+			std::filesystem::create_directories(path);
+			std::cout << "Utworzono katalog!" << std::endl;
+			return true;
+		}
+		else
+		{
+			std::cout << "Anulowano zapis do pliku!" << std::endl;
+			return false;
+		}
+	}
+	else
+	{
+		return true;
+	}
+}
+void ZapisDoPliku(std::ofstream& out_file, std::filesystem::path& path, json& j_out)
+{
+	out_file.open(path);
+
+	if (out_file)
+	{
+		std::cout << "Zapisano! :)" << std::endl;
+		out_file << std::setw(4) << j_out << std::endl;
+	}
+	else
+	{
+		std::cout << "Zapis zakonczony niepowodzeniem! :(" << std::endl;
 	}
 }
 #endif
