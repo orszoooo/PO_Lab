@@ -3,6 +3,36 @@
 
 #include "Trojkat.h"
 
+void Trojkat::setAmplituda(double amplituda)
+{
+    s_amplituda = amplituda;
+}
+
+void Trojkat::setOkres(int okres)
+{
+    s_okres = okres;
+}
+
+void Trojkat::setWypelnienie(double wypelnienie)
+{
+    s_wypelnienie = wypelnienie;
+}
+
+double Trojkat::getAmplituda()
+{
+    return s_amplituda;
+}
+
+int Trojkat::getOkres()
+{
+    return s_okres;
+}
+
+double Trojkat::getWypelnienie()
+{
+    return s_wypelnienie;
+}
+
 double Trojkat::symuluj(int t)
 {
     return (czyAktywny(t) ? (((t % s_okres) < (s_wypelnienie * s_okres)) ? obliczTrojkat(t) : 0.0) : 0.0) + SygnalDekorator::symuluj(t);;

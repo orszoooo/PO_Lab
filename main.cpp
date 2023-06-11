@@ -252,6 +252,10 @@ void ZapisDoPliku(std::ofstream& out_file, std::filesystem::path& path, json& j_
 
 bool sprawdzCzyIstniejeFolder(std::filesystem::path& path, std::string& response);
 
+void odczytJSON(std::ifstream& f, RegulatorPID& reg1, ModelARX& arx1, double& amplitudaSkokJed, int& czasSkoku, int& startSkokJed, int& koniecSkokJed, double& amplitudaSin, int& okres, int& startSin, int& koniecSin, int& startSzum, int& koniecSzum);
+
+void ZapisJSON(RegulatorPID& reg1, ModelARX& arx1, double& amplitudaSkokJed, int& czasSkoku, int& startSkokJed, int& koniecSkokJed, double& amplitudaSin, int& okres, int& startSin, int& koniecSin, int& startSzum, int& koniecSzum);
+
 double symFeedback(RegulatorPID& reg, ModelARX& arx, double wart_zadana) {
 	double uchyb = wart_zadana - lastARX;
 	double wyjReg = reg.symuluj(uchyb);
@@ -267,26 +271,12 @@ int main(int p_argc, const char** p_argv)
 	//Elementy manipulacji systemem plików
 	//Połączyć z wzorcem dekorator(bazowy + 2 dekoratory)
 
-	//Odczyt z pliku konfiguracyjnego
-	std::cout << std::string(30, '=') << "PLIK KONFIGURACYJNY" << std::string(30, '=') << std::endl;
-
-	std::cout << "Odczyt: " << p_argv[1] << std::endl;
-	auto input_path = std::filesystem::path(p_argv[1]);
-	std::ifstream f(input_path);
-
-	std::cout << std::string(30, '=') << "TESTY JEDNOSTKOWE" << std::string(32, '=') << std::endl;
-
 	//Parametry domyślne
 	//PID
-	double p = 0.5;
-	double i = 0.1;
-	double d = 0.0;
+	RegulatorPID reg1(0.5, 0.1);
 
 	//Model ARX
-	unsigned int k = 0;
-	double odchStd = 0.0;
-	std::vector<double> arxA = { 0.1 };
-	std::vector<double> arxB = { 0.1 };
+	ModelARX arx1({ 0.1 }, { 0.1 }, 0, 0.0);
 
 	//Generator Wzorzec Dekorator
 	//Skok Jednostkowy
@@ -305,51 +295,40 @@ int main(int p_argc, const char** p_argv)
 	int startSzum = 0;
 	int koniecSzum = 50;
 
-	if (f.is_open()) {
-		json data = json::parse(f);
+	if (p_argv[1]) 
+	{
+		//Odczyt z pliku konfiguracyjnego
+		std::cout << std::string(30, '=') << "PLIK KONFIGURACYJNY" << std::string(30, '=') << std::endl;
 
-		//PID
-		p = data.at("PID").at("P");
-		i = data.at("PID").at("I");
-		d = data.at("PID").at("D");
+		std::cout << "Odczyt: " << p_argv[1] << std::endl;
+		auto input_path = std::filesystem::path(p_argv[1]);
 
-		//Model ARX
-		arxA.clear();
-		for (auto& el : data.at("ARX").at("A").items()) {
-			arxA.push_back(el.value());
+		if (std::filesystem::exists(input_path)) {
+			std::ifstream f(input_path);
+
+			if (f.is_open()) {
+				odczytJSON(f, reg1, arx1, amplitudaSkokJed, czasSkoku, startSkokJed, koniecSkokJed,
+					amplitudaSin, okres, startSin, koniecSin, startSzum, koniecSzum);
+			}
+			else {
+				std::cout << "Nie mozna otworzyc pliku konfiguracyjnego! Program uzywa wartosci domyslnych!" << std::endl;
+			}
+			
 		}
-
-		arxB.clear();
-		for (auto& el : data.at("ARX").at("B").items()) {
-			arxB.push_back(el.value());
+		else {
+			std::cout << "Plik konfiguracyjny nie istnieje! Program uzywa wartosci domyslnych!" << std::endl;
 		}
-
-		k = data.at("ARX").at("k");
-		odchStd = data.at("ARX").at("OdchStd");
-
-		//Generator Wzorzec Dekorator
-		//Skok Jednostkowy
-		amplitudaSkokJed = data.at("Skok Jednostkowy").at("Amplituda");
-		czasSkoku = data.at("Skok Jednostkowy").at("Czas skoku");
-		startSkokJed = data.at("Skok Jednostkowy").at("Start");
-		koniecSkokJed = data.at("Skok Jednostkowy").at("Koniec");
-
-		//Sinusoida
-		amplitudaSin = data.at("Sinusoida").at("Amplituda");
-		okres = data.at("Sinusoida").at("Okres");
-		startSin = data.at("Sinusoida").at("Start");
-		koniecSin = data.at("Sinusoida").at("Koniec");
-
-		//Szum
-		startSzum = data.at("Szum").at("Start");;
-		koniecSzum = data.at("Szum").at("Koniec");;
+		
+	}
+	else 
+	{
+		std::cout << "Brak pliku konfiguracyjnego! Program uzywa wartosci domyslnych!" << std::endl;
 	}
 
-	//TESTY
-	RegulatorPID_TESTY::uruchom();
 
-	RegulatorPID reg1(p, i);
-	ModelARX arx1(arxA, arxB, k, odchStd);
+	//TESTY
+	std::cout << std::string(30, '=') << "TESTY JEDNOSTKOWE" << std::string(32, '=') << std::endl;
+	RegulatorPID_TESTY::uruchom();
 
 	std::cerr << "Test petli: ";
 
@@ -369,21 +348,25 @@ int main(int p_argc, const char** p_argv)
 
 	//Generator sygnału - wzorzec dekorator
 	std::cout << std::string(30, '=') << "GENERATOR SYGNALOW" << std::string(30, '=') << std::endl;
-
+	Sygnal* s1 = new Sinusoida(new SkokJednostkowy(amplitudaSkokJed, czasSkoku, startSkokJed, koniecSkokJed), amplitudaSin, okres, startSin, koniecSin);
+	Sygnal* s2 = new Szum(s1, startSzum, koniecSzum);
 	int t_stop = std::max({ koniecSkokJed, koniecSin, koniecSzum });
 
 	std::cout << "Szum aktywny od " << startSzum << " do " << koniecSzum << std::endl;
 	std::cout << "+ Sinusoida Amplituda " << amplitudaSin  << ", okres " << okres << ", aktywny od " << startSin << " do " << koniecSin << std::endl;
 	std::cout << "+ Skok Jednostkowy Amplituda " << amplitudaSkokJed << ", Czas Skoku " << czasSkoku << ", Aktywny od " << startSkokJed << " do " << koniecSkokJed << std::endl;
 
-	Sygnal* s1 = new Sinusoida(new SkokJednostkowy(amplitudaSkokJed, czasSkoku, startSkokJed, koniecSkokJed), amplitudaSin, okres, startSin, koniecSin);
-	Sygnal* s2 = new Szum(s1, startSzum, koniecSzum);
-
 	for (int t = 0; t < t_stop; t++) {
 		std::cout << t << ": " << s2->symuluj(t) << std::endl;
 	}
 	std::cout << std::string(80, '=') << std::endl;
 	//Zapis do pliku konfiguracyjnego
+	ZapisJSON(reg1, arx1, amplitudaSkokJed, czasSkoku, startSkokJed, koniecSkokJed, 
+		amplitudaSin, okres, startSin, koniecSin, startSzum, koniecSzum);
+}
+
+void ZapisJSON(RegulatorPID& reg1, ModelARX& arx1, double& amplitudaSkokJed, int& czasSkoku, int& startSkokJed, int& koniecSkokJed, double& amplitudaSin, int& okres, int& startSin, int& koniecSin, int& startSzum, int& koniecSzum)
+{
 	std::string response = "";
 	std::cout << "Czy zapisac parametry regulatora i modelu do pliku? (y/N): ";
 	std::cin >> response;
@@ -396,17 +379,17 @@ int main(int p_argc, const char** p_argv)
 		auto path = std::filesystem::path(response);
 
 		if (!path.empty()) {
-			
+
 			json j_out;
-			j_out["PID"] = { {"P",reg1.get_k()},{"I", reg1.get_Ti()}, {"D",reg1.get_Td()} };
-			j_out["ARX"] = { {"A", arx1.getWspolWielA() }, {"B", arx1.getWspolWielB() }, {"k", arx1.getOpoznienieT() }, {"OdchStd", arx1.getOdchStd() } };
-			j_out["Skok Jednostkowy"] = { {"Amplituda", amplitudaSkokJed}, {"Czas skoku", czasSkoku}, {"Start", startSkokJed}, {"Koniec", koniecSkokJed} };
-			j_out["Sinusoida"] = { {"Amplituda", amplitudaSin}, {"Okres", okres}, {"Start", startSin}, {"Koniec", koniecSin} };
-			j_out["Szum"] = { {"Start", startSzum}, {"Koniec", koniecSzum} };
+			j_out["PID"] = { { "P",reg1.get_k() },{ "I", reg1.get_Ti() },{ "D",reg1.get_Td() } };
+			j_out["ARX"] = { { "A", arx1.getWspolWielA() },{ "B", arx1.getWspolWielB() },{ "k", arx1.getOpoznienieT() },{ "OdchStd", arx1.getOdchStd() } };
+			j_out["Skok Jednostkowy"] = { { "Amplituda", amplitudaSkokJed },{ "Czas skoku", czasSkoku },{ "Start", startSkokJed },{ "Koniec", koniecSkokJed } };
+			j_out["Sinusoida"] = { { "Amplituda", amplitudaSin },{ "Okres", okres },{ "Start", startSin },{ "Koniec", koniecSin } };
+			j_out["Szum"] = { { "Start", startSzum },{ "Koniec", koniecSzum } };
 
 			//Sprawdzenie czy folder istnieje
 			bool folder_exists = sprawdzCzyIstniejeFolder(path, response);;
-			
+
 			//Zapis do pliku
 			std::cout << "Podaj nazwe pliku(musi konczyc sie na .json!): ";
 			std::cin >> response;
@@ -414,36 +397,80 @@ int main(int p_argc, const char** p_argv)
 
 			std::ofstream out_file;
 			path += "\\" + response;
-			if (std::filesystem::exists(path)) 
+			if (std::filesystem::exists(path))
 			{
 				std::cout << "Uwaga! Chcesz nadpisac istniejacy plik! Czy chcesz kontynuowac? (y/N): ";
 				std::cin >> response;
 				std::cout << std::endl;
 
-				if (response.find("y") != std::string::npos) 
+				if (response.find("y") != std::string::npos)
 				{
 					ZapisDoPliku(out_file, path, j_out);
 				}
-				else 
+				else
 				{
 					std::cout << "Anulowano zapis do pliku!" << std::endl;
 				}
 				out_file.close();
 			}
-			else 
+			else
 			{
 				ZapisDoPliku(out_file, path, j_out);
 			}
-			
+
 		}
-		
+
+	}
+}
+void odczytJSON(std::ifstream& f, RegulatorPID& reg1, ModelARX& arx1, double& amplitudaSkokJed, int& czasSkoku, int& startSkokJed, int& koniecSkokJed, double& amplitudaSin, int& okres, int& startSin, int& koniecSin, int& startSzum, int& koniecSzum)
+{
+	if (f.is_open()) {
+		json data = json::parse(f);
+
+		//PID
+		reg1.set_k(data.at("PID").at("P"));
+		reg1.set_Ti(data.at("PID").at("I"));
+		reg1.set_Td(data.at("PID").at("D"));
+
+		//Model ARX
+		std::vector<double> arxA;
+		for (auto& el : data.at("ARX").at("A").items()) {
+			arxA.push_back(el.value());
+		}
+		arx1.setWspolWielA(arxA);
+
+		std::vector<double> arxB;
+		for (auto& el : data.at("ARX").at("B").items()) {
+			arxB.push_back(el.value());
+		}
+		arx1.setWspolWielB(arxB);
+
+		arx1.setOpoznienieT(data.at("ARX").at("k"));
+		arx1.setOdchStd(data.at("ARX").at("OdchStd"));
+
+		//Generator Wzorzec Dekorator
+		//Skok Jednostkowy
+		amplitudaSkokJed = data.at("Skok Jednostkowy").at("Amplituda");
+		czasSkoku = data.at("Skok Jednostkowy").at("Czas skoku");
+		startSkokJed = data.at("Skok Jednostkowy").at("Start");
+		koniecSkokJed = data.at("Skok Jednostkowy").at("Koniec");
+
+		//Sinusoida
+		amplitudaSin = data.at("Sinusoida").at("Amplituda");
+		okres = data.at("Sinusoida").at("Okres");
+		startSin = data.at("Sinusoida").at("Start");
+		koniecSin = data.at("Sinusoida").at("Koniec");
+
+		//Szum
+		startSzum = data.at("Szum").at("Start");;
+		koniecSzum = data.at("Szum").at("Koniec");;
 	}
 }
 bool sprawdzCzyIstniejeFolder(std::filesystem::path& path, std::string& response)
 {
 	if (!std::filesystem::exists(path))
 	{
-		std::cout << "Uwaga! Podany katalog! Czy chcesz kontynuowac i utworzyć katalog? (y/N): ";
+		std::cout << "Uwaga! Podany katalog nie istnieje! Czy chcesz kontynuowac i utworzyc katalog? (y/N): ";
 		std::cin >> response;
 		std::cout << std::endl;
 
