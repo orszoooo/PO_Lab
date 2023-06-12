@@ -290,10 +290,10 @@ int main(int p_argc, const char** p_argv)
 		auto input_path = std::filesystem::path(p_argv[1]);
 
 		if (std::filesystem::exists(input_path)) {
-			std::ifstream f(input_path);
+			std::ifstream input_file(input_path);
 
-			if (f.is_open()) {
-				odczytJSON(f, reg1, arx1, params_generator);
+			if (input_file.is_open()) {
+				odczytJSON(input_file, reg1, arx1, params_generator);
 			}
 			else {
 				std::cout << "Nie mozna otworzyc pliku konfiguracyjnego! Program uzywa wartosci domyslnych!" << std::endl;
