@@ -16,6 +16,7 @@ using json = nlohmann::json;
 #include "Sinusoida.h"
 #include "Trojkat.h"
 #include "Szum.h"
+#include "ParametrySyg.h"
 
 #define MAIN
 
@@ -252,9 +253,9 @@ void ZapisDoPliku(std::ofstream& out_file, std::filesystem::path& path, json& j_
 
 bool sprawdzCzyIstniejeFolder(std::filesystem::path& path, std::string& response);
 
-void odczytJSON(std::ifstream& f, RegulatorPID& reg1, ModelARX& arx1, double& amplitudaSkokJed, int& czasSkoku, int& startSkokJed, int& koniecSkokJed, double& amplitudaSin, int& okres, int& startSin, int& koniecSin, int& startSzum, int& koniecSzum);
+void odczytJSON(std::ifstream& f, RegulatorPID& reg1, ModelARX& arx1, ParametrySyg& params);
 
-void ZapisJSON(RegulatorPID& reg1, ModelARX& arx1, double& amplitudaSkokJed, int& czasSkoku, int& startSkokJed, int& koniecSkokJed, double& amplitudaSin, int& okres, int& startSin, int& koniecSin, int& startSzum, int& koniecSzum);
+void ZapisJSON(RegulatorPID& reg1, ModelARX& arx1, ParametrySyg& params);
 
 double symFeedback(RegulatorPID& reg, ModelARX& arx, double wart_zadana) {
 	double uchyb = wart_zadana - lastARX;
@@ -265,7 +266,6 @@ double symFeedback(RegulatorPID& reg, ModelARX& arx, double wart_zadana) {
 
 int main(int p_argc, const char** p_argv)
 {
-
 	//Wiersz poleceń ścieżka do pliku konfiguracyjnego
 	//Przy kończeniu pracy programu zapytać użytkownika czy zapisać konfigurację do pliku 
 	//Elementy manipulacji systemem plików
@@ -278,22 +278,8 @@ int main(int p_argc, const char** p_argv)
 	//Model ARX
 	ModelARX arx1({ 0.1 }, { 0.1 }, 0, 0.0);
 
-	//Generator Wzorzec Dekorator
-	//Skok Jednostkowy
-	double amplitudaSkokJed = 9.0;
-	int czasSkoku = 35;
-	int startSkokJed = 30;
-	int koniecSkokJed = 40;
-
-	//Sinusoida
-	double amplitudaSin = 10.0;
-	int okres = 20;
-	int startSin = 0;
-	int koniecSin = 40;
-
-	//Szum
-	int startSzum = 0;
-	int koniecSzum = 50;
+	////Generator Wzorzec Dekorator
+	ParametrySyg params_generator;
 
 	if (p_argv[1]) 
 	{
@@ -307,8 +293,7 @@ int main(int p_argc, const char** p_argv)
 			std::ifstream f(input_path);
 
 			if (f.is_open()) {
-				odczytJSON(f, reg1, arx1, amplitudaSkokJed, czasSkoku, startSkokJed, koniecSkokJed,
-					amplitudaSin, okres, startSin, koniecSin, startSzum, koniecSzum);
+				odczytJSON(f, reg1, arx1, params_generator);
 			}
 			else {
 				std::cout << "Nie mozna otworzyc pliku konfiguracyjnego! Program uzywa wartosci domyslnych!" << std::endl;
@@ -348,24 +333,26 @@ int main(int p_argc, const char** p_argv)
 
 	//Generator sygnału - wzorzec dekorator
 	std::cout << std::string(30, '=') << "GENERATOR SYGNALOW" << std::string(30, '=') << std::endl;
-	Sygnal* s1 = new Sinusoida(new SkokJednostkowy(amplitudaSkokJed, czasSkoku, startSkokJed, koniecSkokJed), amplitudaSin, okres, startSin, koniecSin);
-	Sygnal* s2 = new Szum(s1, startSzum, koniecSzum);
-	int t_stop = std::max({ koniecSkokJed, koniecSin, koniecSzum });
+	Sygnal* s1 = new Sinusoida(new SkokJednostkowy(params_generator.amplitudaSkokJed, params_generator.czasSkoku, params_generator.startSkokJed, params_generator.koniecSkokJed), 
+		params_generator.amplitudaSin, params_generator.okres, params_generator.startSin, params_generator.koniecSin);
+	Sygnal* s2 = new Szum(s1, params_generator.startSzum, params_generator.koniecSzum);
+	int t_stop = std::max({ params_generator.koniecSkokJed, params_generator.koniecSin, params_generator.koniecSzum });
 
-	std::cout << "Szum aktywny od " << startSzum << " do " << koniecSzum << std::endl;
-	std::cout << "+ Sinusoida Amplituda " << amplitudaSin  << ", okres " << okres << ", aktywny od " << startSin << " do " << koniecSin << std::endl;
-	std::cout << "+ Skok Jednostkowy Amplituda " << amplitudaSkokJed << ", Czas Skoku " << czasSkoku << ", Aktywny od " << startSkokJed << " do " << koniecSkokJed << std::endl;
+	std::cout << "Szum aktywny od " << params_generator.startSzum << " do " << params_generator.koniecSzum << std::endl;
+	std::cout << "+ Sinusoida Amplituda " << params_generator.amplitudaSin  << ", okres " << params_generator.okres << ", aktywny od " << params_generator.startSin 
+		<< " do " << params_generator.koniecSin << std::endl;
+	std::cout << "+ Skok Jednostkowy Amplituda " << params_generator.amplitudaSkokJed << ", Czas Skoku " << params_generator.czasSkoku << ", Aktywny od "
+		<< params_generator.startSkokJed << " do " << params_generator.koniecSkokJed << std::endl;
 
 	for (int t = 0; t < t_stop; t++) {
 		std::cout << t << ": " << s2->symuluj(t) << std::endl;
 	}
 	std::cout << std::string(80, '=') << std::endl;
 	//Zapis do pliku konfiguracyjnego
-	ZapisJSON(reg1, arx1, amplitudaSkokJed, czasSkoku, startSkokJed, koniecSkokJed, 
-		amplitudaSin, okres, startSin, koniecSin, startSzum, koniecSzum);
+	ZapisJSON(reg1, arx1, params_generator);
 }
 
-void ZapisJSON(RegulatorPID& reg1, ModelARX& arx1, double& amplitudaSkokJed, int& czasSkoku, int& startSkokJed, int& koniecSkokJed, double& amplitudaSin, int& okres, int& startSin, int& koniecSin, int& startSzum, int& koniecSzum)
+void ZapisJSON(RegulatorPID& reg1, ModelARX& arx1, ParametrySyg& params)
 {
 	std::string response = "";
 	std::cout << "Czy zapisac parametry regulatora i modelu do pliku? (y/N): ";
@@ -382,10 +369,13 @@ void ZapisJSON(RegulatorPID& reg1, ModelARX& arx1, double& amplitudaSkokJed, int
 
 			json j_out;
 			j_out["PID"] = { { "P",reg1.get_k() },{ "I", reg1.get_Ti() },{ "D",reg1.get_Td() } };
-			j_out["ARX"] = { { "A", arx1.getWspolWielA() },{ "B", arx1.getWspolWielB() },{ "k", arx1.getOpoznienieT() },{ "OdchStd", arx1.getOdchStd() } };
-			j_out["Skok Jednostkowy"] = { { "Amplituda", amplitudaSkokJed },{ "Czas skoku", czasSkoku },{ "Start", startSkokJed },{ "Koniec", koniecSkokJed } };
-			j_out["Sinusoida"] = { { "Amplituda", amplitudaSin },{ "Okres", okres },{ "Start", startSin },{ "Koniec", koniecSin } };
-			j_out["Szum"] = { { "Start", startSzum },{ "Koniec", koniecSzum } };
+			j_out["ARX"] = { { "A", arx1.getWspolWielA() },{ "B", arx1.getWspolWielB() },{ "k", arx1.getOpoznienieT() },
+				{ "OdchStd", arx1.getOdchStd() } };
+			j_out["Skok Jednostkowy"] = { { "Amplituda", params.amplitudaSkokJed },{ "Czas skoku", params.czasSkoku },
+				{ "Start", params.startSkokJed },{ "Koniec", params.koniecSkokJed } };
+			j_out["Sinusoida"] = { { "Amplituda", params.amplitudaSin },{ "Okres", params.okres },{ "Start", params.startSin },
+				{ "Koniec", params.koniecSin } };
+			j_out["Szum"] = { { "Start", params.startSzum },{ "Koniec", params.koniecSzum } };
 
 			//Sprawdzenie czy folder istnieje
 			bool folder_exists = sprawdzCzyIstniejeFolder(path, response);;
@@ -422,7 +412,7 @@ void ZapisJSON(RegulatorPID& reg1, ModelARX& arx1, double& amplitudaSkokJed, int
 
 	}
 }
-void odczytJSON(std::ifstream& f, RegulatorPID& reg1, ModelARX& arx1, double& amplitudaSkokJed, int& czasSkoku, int& startSkokJed, int& koniecSkokJed, double& amplitudaSin, int& okres, int& startSin, int& koniecSin, int& startSzum, int& koniecSzum)
+void odczytJSON(std::ifstream& f, RegulatorPID& reg1, ModelARX& arx1, ParametrySyg& params)
 {
 	if (f.is_open()) {
 		json data = json::parse(f);
@@ -450,20 +440,20 @@ void odczytJSON(std::ifstream& f, RegulatorPID& reg1, ModelARX& arx1, double& am
 
 		//Generator Wzorzec Dekorator
 		//Skok Jednostkowy
-		amplitudaSkokJed = data.at("Skok Jednostkowy").at("Amplituda");
-		czasSkoku = data.at("Skok Jednostkowy").at("Czas skoku");
-		startSkokJed = data.at("Skok Jednostkowy").at("Start");
-		koniecSkokJed = data.at("Skok Jednostkowy").at("Koniec");
+		params.amplitudaSkokJed = data.at("Skok Jednostkowy").at("Amplituda");
+		params.czasSkoku = data.at("Skok Jednostkowy").at("Czas skoku");
+		params.startSkokJed = data.at("Skok Jednostkowy").at("Start");
+		params.koniecSkokJed = data.at("Skok Jednostkowy").at("Koniec");
 
 		//Sinusoida
-		amplitudaSin = data.at("Sinusoida").at("Amplituda");
-		okres = data.at("Sinusoida").at("Okres");
-		startSin = data.at("Sinusoida").at("Start");
-		koniecSin = data.at("Sinusoida").at("Koniec");
+		params.amplitudaSin = data.at("Sinusoida").at("Amplituda");
+		params.okres = data.at("Sinusoida").at("Okres");
+		params.startSin = data.at("Sinusoida").at("Start");
+		params.koniecSin = data.at("Sinusoida").at("Koniec");
 
 		//Szum
-		startSzum = data.at("Szum").at("Start");;
-		koniecSzum = data.at("Szum").at("Koniec");;
+		params.startSzum = data.at("Szum").at("Start");;
+		params.koniecSzum = data.at("Szum").at("Koniec");;
 	}
 }
 bool sprawdzCzyIstniejeFolder(std::filesystem::path& path, std::string& response)

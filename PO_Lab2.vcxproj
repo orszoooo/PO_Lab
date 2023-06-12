@@ -145,6 +145,7 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="ModelARX.h" />
     <ClInclude Include="ObiektSISO.h" />
+    <ClInclude Include="ParametrySyg.h" />
     <ClInclude Include="Prostokat.h" />
     <ClInclude Include="RegulatorPID.h" />
     <ClInclude Include="Sinusoida.h" />
