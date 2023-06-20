@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 #include <vector>
 #include <iomanip>
 #include <fstream>
@@ -11,12 +10,13 @@ using json = nlohmann::json;
 
 #include "RegulatorPID.h"
 #include "ModelARX.h"
-
+#include "Utils.h"
 #include "SkokJednostkowy.h"
 #include "Sinusoida.h"
 #include "Trojkat.h"
 #include "Szum.h"
 #include "ParametrySyg.h"
+#include "KompozytUAR.h"
 
 #define MAIN
 
@@ -248,37 +248,23 @@ int main()
 #ifdef MAIN
 static double lastARX = 0.0;
 std::mt19937 Szum::generator; //Szum.h
-
-void ZapisDoPliku(std::ofstream& out_file, std::filesystem::path& path, json& j_out);
-
-bool sprawdzCzyIstniejeFolder(std::filesystem::path& path, std::string& response);
-
-void odczytJSON(std::ifstream& f, RegulatorPID& reg1, ModelARX& arx1, ParametrySyg& params);
-
-void ZapisJSON(RegulatorPID& reg1, ModelARX& arx1, ParametrySyg& params);
-
-double symFeedback(RegulatorPID& reg, ModelARX& arx, double wart_zadana) {
-	double uchyb = wart_zadana - lastARX;
-	double wyjReg = reg.symuluj(uchyb);
-	lastARX = arx.symuluj(wyjReg);
-	return lastARX;
-}
+int Komponent::liczba_objektow = 0;
 
 int main(int p_argc, const char** p_argv)
 {
+	//LAB4
 	//Wiersz poleceń ścieżka do pliku konfiguracyjnego
 	//Przy kończeniu pracy programu zapytać użytkownika czy zapisać konfigurację do pliku 
 	//Elementy manipulacji systemem plików
 	//Połączyć z wzorcem dekorator(bazowy + 2 dekoratory)
 
+	//LAB5
+	//Wzorzec komponent (funkcje dodaj, usuń, symuluj)
+
 	//Parametry domyślne
-	//PID
-	RegulatorPID reg1(0.5, 0.1);
+	KompozytUAR petlaRegulacji(1); //zamknięta
 
-	//Model ARX
-	ModelARX arx1({ 0.1 }, { 0.1 }, 0, 0.0);
-
-	////Generator Wzorzec Dekorator
+	//Generator Wzorzec Dekorator
 	ParametrySyg params_generator;
 
 	if (p_argv[1]) 
@@ -293,7 +279,7 @@ int main(int p_argc, const char** p_argv)
 			std::ifstream input_file(input_path);
 
 			if (input_file.is_open()) {
-				odczytJSON(input_file, reg1, arx1, params_generator);
+				odczytJSON(input_file,petlaRegulacji, params_generator);
 			}
 			else {
 				std::cout << "Nie mozna otworzyc pliku konfiguracyjnego! Program uzywa wartosci domyslnych!" << std::endl;
@@ -310,27 +296,6 @@ int main(int p_argc, const char** p_argv)
 		std::cout << "Brak pliku konfiguracyjnego! Program uzywa wartosci domyslnych!" << std::endl;
 	}
 
-
-	//TESTY
-	std::cout << std::string(30, '=') << "TESTY JEDNOSTKOWE" << std::string(32, '=') << std::endl;
-	RegulatorPID_TESTY::uruchom();
-
-	std::cerr << "Test petli: ";
-
-	double syg;
-	//Generator sygnału
-	for (int i = 0; i < 30; i++) {
-		if (i == 0) {
-			syg = 0.0;
-		}
-		else {
-			syg = 1.0;
-		}
-
-		std::cerr << std::setw(2) << std::setprecision(2) << std::showpoint << symFeedback(reg1, arx1, syg) << " ";
-	}
-	std::cerr << std::endl;
-
 	//Generator sygnału - wzorzec dekorator
 	std::cout << std::string(30, '=') << "GENERATOR SYGNALOW" << std::string(30, '=') << std::endl;
 	Sygnal* s1 = new Sinusoida(new SkokJednostkowy(params_generator.amplitudaSkokJed, params_generator.czasSkoku, params_generator.startSkokJed, params_generator.koniecSkokJed), 
@@ -344,156 +309,17 @@ int main(int p_argc, const char** p_argv)
 	std::cout << "+ Skok Jednostkowy Amplituda " << params_generator.amplitudaSkokJed << ", Czas Skoku " << params_generator.czasSkoku << ", Aktywny od "
 		<< params_generator.startSkokJed << " do " << params_generator.koniecSkokJed << std::endl;
 
+	//Pętla regulacji
 	for (int t = 0; t < t_stop; t++) {
-		std::cout << t << ": " << s2->symuluj(t) << std::endl;
+		std::cout << t << ": " << petlaRegulacji.symuluj(s2->symuluj(t)) << std::endl;
 	}
+
 	std::cout << std::string(80, '=') << std::endl;
+
+	//Delete na pojemnik UAR!!!!!
+	
 	//Zapis do pliku konfiguracyjnego
-	ZapisJSON(reg1, arx1, params_generator);
-}
-
-void ZapisJSON(RegulatorPID& reg1, ModelARX& arx1, ParametrySyg& params)
-{
-	std::string response = "";
-	std::cout << "Czy zapisac parametry regulatora i modelu do pliku? (y/N): ";
-	std::cin >> response;
-	std::cout << std::endl;
-
-	if (response.find("y") != std::string::npos) {
-		std::cout << "Podaj sciezke do folderu docelowego: ";
-		std::cin >> response;
-		std::cout << std::endl;
-		auto path = std::filesystem::path(response);
-
-		if (!path.empty()) {
-
-			json j_out;
-			j_out["PID"] = { { "P",reg1.get_k() },{ "I", reg1.get_Ti() },{ "D",reg1.get_Td() } };
-			j_out["ARX"] = { { "A", arx1.getWspolWielA() },{ "B", arx1.getWspolWielB() },{ "k", arx1.getOpoznienieT() },
-				{ "OdchStd", arx1.getOdchStd() } };
-			j_out["Skok Jednostkowy"] = { { "Amplituda", params.amplitudaSkokJed },{ "Czas skoku", params.czasSkoku },
-				{ "Start", params.startSkokJed },{ "Koniec", params.koniecSkokJed } };
-			j_out["Sinusoida"] = { { "Amplituda", params.amplitudaSin },{ "Okres", params.okres },{ "Start", params.startSin },
-				{ "Koniec", params.koniecSin } };
-			j_out["Szum"] = { { "Start", params.startSzum },{ "Koniec", params.koniecSzum } };
-
-			//Sprawdzenie czy folder istnieje
-			bool folder_exists = sprawdzCzyIstniejeFolder(path, response);;
-
-			//Zapis do pliku
-			std::cout << "Podaj nazwe pliku(musi konczyc sie na .json!): ";
-			std::cin >> response;
-			std::cout << std::endl;
-
-			std::ofstream out_file;
-			path += "\\" + response;
-			if (std::filesystem::exists(path))
-			{
-				std::cout << "Uwaga! Chcesz nadpisac istniejacy plik! Czy chcesz kontynuowac? (y/N): ";
-				std::cin >> response;
-				std::cout << std::endl;
-
-				if (response.find("y") != std::string::npos)
-				{
-					ZapisDoPliku(out_file, path, j_out);
-				}
-				else
-				{
-					std::cout << "Anulowano zapis do pliku!" << std::endl;
-				}
-				out_file.close();
-			}
-			else
-			{
-				ZapisDoPliku(out_file, path, j_out);
-			}
-
-		}
-
-	}
-}
-void odczytJSON(std::ifstream& f, RegulatorPID& reg1, ModelARX& arx1, ParametrySyg& params)
-{
-	if (f.is_open()) {
-		json data = json::parse(f);
-
-		//PID
-		reg1.set_k(data.at("PID").at("P"));
-		reg1.set_Ti(data.at("PID").at("I"));
-		reg1.set_Td(data.at("PID").at("D"));
-
-		//Model ARX
-		std::vector<double> arxA;
-		for (auto& el : data.at("ARX").at("A").items()) {
-			arxA.push_back(el.value());
-		}
-		arx1.setWspolWielA(arxA);
-
-		std::vector<double> arxB;
-		for (auto& el : data.at("ARX").at("B").items()) {
-			arxB.push_back(el.value());
-		}
-		arx1.setWspolWielB(arxB);
-
-		arx1.setOpoznienieT(data.at("ARX").at("k"));
-		arx1.setOdchStd(data.at("ARX").at("OdchStd"));
-
-		//Generator Wzorzec Dekorator
-		//Skok Jednostkowy
-		params.amplitudaSkokJed = data.at("Skok Jednostkowy").at("Amplituda");
-		params.czasSkoku = data.at("Skok Jednostkowy").at("Czas skoku");
-		params.startSkokJed = data.at("Skok Jednostkowy").at("Start");
-		params.koniecSkokJed = data.at("Skok Jednostkowy").at("Koniec");
-
-		//Sinusoida
-		params.amplitudaSin = data.at("Sinusoida").at("Amplituda");
-		params.okres = data.at("Sinusoida").at("Okres");
-		params.startSin = data.at("Sinusoida").at("Start");
-		params.koniecSin = data.at("Sinusoida").at("Koniec");
-
-		//Szum
-		params.startSzum = data.at("Szum").at("Start");;
-		params.koniecSzum = data.at("Szum").at("Koniec");;
-	}
-}
-bool sprawdzCzyIstniejeFolder(std::filesystem::path& path, std::string& response)
-{
-	if (!std::filesystem::exists(path))
-	{
-		std::cout << "Uwaga! Podany katalog nie istnieje! Czy chcesz kontynuowac i utworzyc katalog? (y/N): ";
-		std::cin >> response;
-		std::cout << std::endl;
-
-		if (response.find("y") != std::string::npos)
-		{
-			std::filesystem::create_directories(path);
-			std::cout << "Utworzono katalog!" << std::endl;
-			return true;
-		}
-		else
-		{
-			std::cout << "Anulowano zapis do pliku!" << std::endl;
-			return false;
-		}
-	}
-	else
-	{
-		return true;
-	}
-}
-void ZapisDoPliku(std::ofstream& out_file, std::filesystem::path& path, json& j_out)
-{
-	out_file.open(path);
-
-	if (out_file)
-	{
-		std::cout << "Zapisano! :)" << std::endl;
-		out_file << std::setw(4) << j_out << std::endl;
-	}
-	else
-	{
-		std::cout << "Zapis zakonczony niepowodzeniem! :(" << std::endl;
-	}
+	//ZapisJSON(reg1, arx1, params_generator);
 }
 #endif
 

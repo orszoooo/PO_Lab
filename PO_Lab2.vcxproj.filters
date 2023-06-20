@@ -48,6 +48,18 @@
     <ClCompile Include="Trojkat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Kompozyt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="KompozytUAR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Komponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Prostokat.h">
@@ -84,6 +96,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ParametrySyg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Komponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Kompozyt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KompozytRownolegly.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KompozytSzeregowy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KompozytUAR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

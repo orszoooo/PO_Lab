@@ -1,6 +1,7 @@
 #pragma once
-#include "ObiektSISO.h"
-class RegulatorPID : public ObiektSISO{
+#include "Komponent.h"
+
+class RegulatorPID : public Komponent {
 private:
 	double s_k, s_Ti, s_Td;
 	double s_memI = 0.0, s_memD = 0.0;

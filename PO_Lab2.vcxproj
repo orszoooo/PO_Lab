@@ -129,6 +129,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Komponent.cpp" />
+    <ClCompile Include="Kompozyt.cpp" />
+    <ClCompile Include="KompozytUAR.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ModelARX.cpp" />
     <ClCompile Include="ObiektSISO.cpp" />
@@ -140,9 +143,15 @@
     <ClCompile Include="SygnalDekorator.cpp" />
     <ClCompile Include="Szum.cpp" />
     <ClCompile Include="Trojkat.cpp" />
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="json.hpp" />
+    <ClInclude Include="Komponent.h" />
+    <ClInclude Include="Kompozyt.h" />
+    <ClInclude Include="KompozytRownolegly.h" />
+    <ClInclude Include="KompozytSzeregowy.h" />
+    <ClInclude Include="KompozytUAR.h" />
     <ClInclude Include="ModelARX.h" />
     <ClInclude Include="ObiektSISO.h" />
     <ClInclude Include="ParametrySyg.h" />
@@ -154,6 +163,7 @@
     <ClInclude Include="SygnalDekorator.h" />
     <ClInclude Include="Szum.h" />
     <ClInclude Include="Trojkat.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

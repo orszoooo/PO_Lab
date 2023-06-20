@@ -1,10 +1,10 @@
 #pragma once
-#include "ObiektSISO.h"
+#include "Komponent.h"
 
 #include <vector>
 #include <deque>
 
-class ModelARX : ObiektSISO {
+class ModelARX : public Komponent {
 private:
 	unsigned int s_dA, s_dB, s_k; //rozmiary buforów k - opóŸnienie transportowe
 	double s_odchStd;		//s_ oznacza sk³adow¹ klasy
@@ -29,7 +29,7 @@ public:
 	double getOdchStd();
 
 
-	double symuluj(double u);
+	double symuluj(double u) override;
 
 	friend class Testy_ModelARX;
 
