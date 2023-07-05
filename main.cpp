@@ -250,6 +250,13 @@ static double lastARX = 0.0;
 std::mt19937 Szum::generator; //Szum.h
 int Komponent::liczba_objektow = 0;
 
+double symFeedback(RegulatorPID& reg, ModelARX& arx, double wart_zadana) {
+	double uchyb = wart_zadana - lastARX;
+	double wyjReg = reg.symuluj(uchyb);
+	lastARX = arx.symuluj(wyjReg);
+	return lastARX;
+}
+
 int main(int p_argc, const char** p_argv)
 {
 	//LAB4
@@ -260,17 +267,27 @@ int main(int p_argc, const char** p_argv)
 
 	//LAB5
 	//Wzorzec komponent (funkcje dodaj, usuń, symuluj)
-
+	
 	//Parametry domyślne
-	KompozytUAR petlaRegulacji(1); //zamknięta
+	//PID
+	RegulatorPID reg1(1.0, 0.0,0.0);
+
+	//Model ARX
+	//ModelARX arx1({ -0.4 }, { 0.6 }, 1, 0.0);
+	ModelARX arx1({ 0.1 }, { 0.1 }, 1, 0.0);
+
+	KompozytUAR petlaRegulacji(1); //zamknięta pętla regulacji
 
 	//Generator Wzorzec Dekorator
 	ParametrySyg params_generator;
 
+	//Konfiguracja z pliku
+	json data;
+
 	if (p_argv[1]) 
 	{
 		//Odczyt z pliku konfiguracyjnego
-		std::cout << std::string(30, '=') << "PLIK KONFIGURACYJNY" << std::string(30, '=') << std::endl;
+		std::cout << std::string(29, '=') << "PLIK KONFIGURACYJNY" << std::string(30, '=') << std::endl;
 
 		std::cout << "Odczyt: " << p_argv[1] << std::endl;
 		auto input_path = std::filesystem::path(p_argv[1]);
@@ -279,7 +296,7 @@ int main(int p_argc, const char** p_argv)
 			std::ifstream input_file(input_path);
 
 			if (input_file.is_open()) {
-				odczytJSON(input_file,petlaRegulacji, params_generator);
+				odczytJSON(data,input_file,petlaRegulacji, params_generator);
 			}
 			else {
 				std::cout << "Nie mozna otworzyc pliku konfiguracyjnego! Program uzywa wartosci domyslnych!" << std::endl;
@@ -296,7 +313,7 @@ int main(int p_argc, const char** p_argv)
 		std::cout << "Brak pliku konfiguracyjnego! Program uzywa wartosci domyslnych!" << std::endl;
 	}
 
-	//Generator sygnału - wzorzec dekorator
+	//Złożony sygnał
 	std::cout << std::string(30, '=') << "GENERATOR SYGNALOW" << std::string(30, '=') << std::endl;
 	Sygnal* s1 = new Sinusoida(new SkokJednostkowy(params_generator.amplitudaSkokJed, params_generator.czasSkoku, params_generator.startSkokJed, params_generator.koniecSkokJed), 
 		params_generator.amplitudaSin, params_generator.okres, params_generator.startSin, params_generator.koniecSin);
@@ -308,18 +325,22 @@ int main(int p_argc, const char** p_argv)
 		<< " do " << params_generator.koniecSin << std::endl;
 	std::cout << "+ Skok Jednostkowy Amplituda " << params_generator.amplitudaSkokJed << ", Czas Skoku " << params_generator.czasSkoku << ", Aktywny od "
 		<< params_generator.startSkokJed << " do " << params_generator.koniecSkokJed << std::endl;
+	
 
-	//Pętla regulacji
+	double sig = 0.0;
+    //Pętla regulacji
+	std::cout << std::string(34, '=') << "SYMULACJA" << std::string(35, '=') << std::endl;
+	std::cout << "Czas:  Sygnal wej | Petla UAR | Funkcja symFeedback" << std::endl;
 	for (int t = 0; t < t_stop; t++) {
-		std::cout << t << ": " << petlaRegulacji.symuluj(s2->symuluj(t)) << std::endl;
+		sig = s2->symuluj(t);
+		std::cout << t << ": " << sig << "|" << petlaRegulacji.symuluj(sig) << "|" << symFeedback(reg1, arx1, sig) << std::endl;
 	}
-
 	std::cout << std::string(80, '=') << std::endl;
-
-	//Delete na pojemnik UAR!!!!!
 	
 	//Zapis do pliku konfiguracyjnego
-	//ZapisJSON(reg1, arx1, params_generator);
+	ZapisJSON(data);
+
+	petlaRegulacji.usun();
 }
 #endif
 

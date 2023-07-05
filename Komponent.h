@@ -7,7 +7,7 @@ private:
 	int id;
 public:
 	virtual void dodaj(Komponent* komp);
-	virtual void usun(Komponent* komp);
+	virtual void usun();
 	virtual double symuluj(double u) override;
 
 	int getID() {

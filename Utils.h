@@ -20,10 +20,10 @@ void ZapisDoPliku(std::ofstream& out_file, std::filesystem::path& path, json& j_
 
 bool sprawdzCzyIstniejeFolder(std::filesystem::path& path, std::string& response);
 
-void odczytJSON(std::ifstream& f, KompozytUAR& UAR, ParametrySyg& params);
+void odczytJSON(json& data, std::ifstream& f, KompozytUAR& UAR, ParametrySyg& params);
 
 void stworzKompozyt(KompozytUAR& UAR, json& data);
 
-//void ZapisJSON(KompozytUAR& UAR, ParametrySyg& params);
+void ZapisJSON(json& data);
 
 

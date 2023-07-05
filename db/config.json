@@ -5,35 +5,35 @@
             "KompozytSzereg":{
                 "ARX1": {
                     "A": [
-                        0.6
+                        0.1
                     ],
                     "B": [
                         0.1
                     ],
                     "OdchStd": 0.0,
-                    "k": 2
+                    "k": 1
                 },
                 "ARX2": {
                     "A": [
-                        0.4
+                        -0.4
                     ],
                     "B": [
-                        -0.1
+                        0.6
                     ],
                     "OdchStd": 0.0,
-                    "k": 0
+                    "k": 1
                 }
             },
             "KompozytRown":{
                 "ARX3": {
                     "A": [
-                        0.1
+                        -0.02
                     ],
                     "B": [
-                        -0.1
+                        0.1
                     ],
                     "OdchStd": 0.0,
-                    "k": 0
+                    "k": 1
                 },
                 "ARX4": {
                     "A": [
@@ -49,24 +49,24 @@
         },
         "PID": {
             "D": 0.0,
-            "I": 0.1,
-            "P": 0.5
+            "I": 0.0,
+            "P": 1.0
         }
     },
     "Sinusoida": {
-        "Amplituda": 10.0,
-        "Koniec": 40,
-        "Okres": 20,
-        "Start": 0
+        "Amplituda": 1.0,
+        "Koniec": 50,
+        "Okres": 10,
+        "Start": 5
     },
     "Skok Jednostkowy": {
-        "Amplituda": 9.0,
-        "Czas skoku": 35,
-        "Koniec": 40,
-        "Start": 30
+        "Amplituda": 2.0,
+        "Czas skoku": 5,
+        "Koniec": 50,
+        "Start": 0
     },
     "Szum": {
-        "Koniec": 150,
-        "Start": 0
+        "Koniec": 40,
+        "Start": 30
     }
 }

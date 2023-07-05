@@ -1,70 +1,62 @@
 #include "Utils.h"
 
-//void ZapisJSON(KompozytUAR& UAR, ParametrySyg& params)
-//{
-//	std::string response = "";
-//	std::cout << "Czy zapisac parametry regulatora i modelu do pliku? (y/N): ";
-//	std::cin >> response;
-//	std::cout << std::endl;
-//
-//	if (response.find("y") != std::string::npos) {
-//		std::cout << "Podaj sciezke do folderu docelowego: ";
-//		std::cin >> response;
-//		std::cout << std::endl;
-//		auto path = std::filesystem::path(response);
-//
-//		if (!path.empty()) {
-//
-//			json j_out;
-//			j_out["PID"] = { { "P",reg1.get_k() },{ "I", reg1.get_Ti() },{ "D",reg1.get_Td() } };
-//			j_out["ARX"] = { { "A", arx1.getWspolWielA() },{ "B", arx1.getWspolWielB() },{ "k", arx1.getOpoznienieT() },
-//				{ "OdchStd", arx1.getOdchStd() } };
-//			j_out["Skok Jednostkowy"] = { { "Amplituda", params.amplitudaSkokJed },{ "Czas skoku", params.czasSkoku },
-//				{ "Start", params.startSkokJed },{ "Koniec", params.koniecSkokJed } };
-//			j_out["Sinusoida"] = { { "Amplituda", params.amplitudaSin },{ "Okres", params.okres },{ "Start", params.startSin },
-//				{ "Koniec", params.koniecSin } };
-//			j_out["Szum"] = { { "Start", params.startSzum },{ "Koniec", params.koniecSzum } };
-//
-//			//Sprawdzenie czy folder istnieje
-//			bool folder_exists = sprawdzCzyIstniejeFolder(path, response);;
-//
-//			//Zapis do pliku
-//			std::cout << "Podaj nazwe pliku(musi konczyc sie na .json!): ";
-//			std::cin >> response;
-//			std::cout << std::endl;
-//
-//			std::ofstream out_file;
-//			path += "\\" + response;
-//			if (std::filesystem::exists(path))
-//			{
-//				std::cout << "Uwaga! Chcesz nadpisac istniejacy plik! Czy chcesz kontynuowac? (y/N): ";
-//				std::cin >> response;
-//				std::cout << std::endl;
-//
-//				if (response.find("y") != std::string::npos)
-//				{
-//					ZapisDoPliku(out_file, path, j_out);
-//				}
-//				else
-//				{
-//					std::cout << "Anulowano zapis do pliku!" << std::endl;
-//				}
-//				out_file.close();
-//			}
-//			else
-//			{
-//				ZapisDoPliku(out_file, path, j_out);
-//			}
-//
-//		}
-//
-//	}
-//}
+void ZapisJSON(json& data)
+{
+	std::string response = "";
+	std::cout << "Czy zapisac parametry regulatora i modelu do pliku? (y/N): ";
+	std::cin >> response;
+	std::cout << std::endl;
 
-void odczytJSON(std::ifstream& f, KompozytUAR& UAR, ParametrySyg& params)
+	if (response.find("y") != std::string::npos) {
+		std::cout << "Podaj sciezke do folderu docelowego: ";
+		std::cin >> response;
+		std::cout << std::endl;
+		auto path = std::filesystem::path(response);
+
+		if (!path.empty()) {
+
+			json j_out = data;
+		
+			//Sprawdzenie czy folder istnieje
+			bool folder_exists = sprawdzCzyIstniejeFolder(path, response);;
+
+			//Zapis do pliku
+			std::cout << "Podaj nazwe pliku(musi konczyc sie na .json!): ";
+			std::cin >> response;
+			std::cout << std::endl;
+
+			std::ofstream out_file;
+			path += "\\" + response;
+			if (std::filesystem::exists(path))
+			{
+				std::cout << "Uwaga! Chcesz nadpisac istniejacy plik! Czy chcesz kontynuowac? (y/N): ";
+				std::cin >> response;
+				std::cout << std::endl;
+
+				if (response.find("y") != std::string::npos)
+				{
+					ZapisDoPliku(out_file, path, j_out);
+				}
+				else
+				{
+					std::cout << "Anulowano zapis do pliku!" << std::endl;
+				}
+				out_file.close();
+			}
+			else
+			{
+				ZapisDoPliku(out_file, path, j_out);
+			}
+
+		}
+
+	}
+}
+
+void odczytJSON(json& data, std::ifstream& f, KompozytUAR& UAR, ParametrySyg& params)
 {
 	if (f.is_open()) {
-		json data = json::parse(f);
+		data = json::parse(f);
 
 		stworzKompozyt(UAR, data);
 
@@ -96,8 +88,8 @@ void stworzKompozyt(KompozytUAR& UAR, json& data) {
 	Komponent* arx1 = new ModelARX(
 		data.at("/UAR/Pojemnik/KompozytSzereg/ARX1/A"_json_pointer),
 		data.at("/UAR/Pojemnik/KompozytSzereg/ARX1/B"_json_pointer),
-		data.at("/UAR/Pojemnik/KompozytSzereg/ARX1/OdchStd"_json_pointer),
-		data.at("/UAR/Pojemnik/KompozytSzereg/ARX1/k"_json_pointer)
+		data.at("/UAR/Pojemnik/KompozytSzereg/ARX1/k"_json_pointer),
+		data.at("/UAR/Pojemnik/KompozytSzereg/ARX1/OdchStd"_json_pointer)
 	);
 
 	kompSzereg->dodaj(arx1);
@@ -105,11 +97,11 @@ void stworzKompozyt(KompozytUAR& UAR, json& data) {
 	Komponent* arx2 = new ModelARX(
 		data.at("/UAR/Pojemnik/KompozytSzereg/ARX2/A"_json_pointer),
 		data.at("/UAR/Pojemnik/KompozytSzereg/ARX2/B"_json_pointer),
-		data.at("/UAR/Pojemnik/KompozytSzereg/ARX2/OdchStd"_json_pointer),
-		data.at("/UAR/Pojemnik/KompozytSzereg/ARX2/k"_json_pointer)
+		data.at("/UAR/Pojemnik/KompozytSzereg/ARX2/k"_json_pointer),
+		data.at("/UAR/Pojemnik/KompozytSzereg/ARX2/OdchStd"_json_pointer)
 	);
 
-	kompSzereg->dodaj(arx2);
+	//kompSzereg->dodaj(arx2);
 
 	UAR.dodaj(kompSzereg);
 
@@ -117,8 +109,8 @@ void stworzKompozyt(KompozytUAR& UAR, json& data) {
 	Komponent* arx3 = new ModelARX(
 		data.at("/UAR/Pojemnik/KompozytRown/ARX3/A"_json_pointer),
 		data.at("/UAR/Pojemnik/KompozytRown/ARX3/B"_json_pointer),
-		data.at("/UAR/Pojemnik/KompozytRown/ARX3/OdchStd"_json_pointer),
-		data.at("/UAR/Pojemnik/KompozytRown/ARX3/k"_json_pointer)
+		data.at("/UAR/Pojemnik/KompozytRown/ARX3/k"_json_pointer),
+		data.at("/UAR/Pojemnik/KompozytRown/ARX3/OdchStd"_json_pointer)
 	);
 
 	kompRown->dodaj(arx3);
@@ -126,13 +118,13 @@ void stworzKompozyt(KompozytUAR& UAR, json& data) {
 	Komponent* arx4 = new ModelARX(
 		data.at("/UAR/Pojemnik/KompozytRown/ARX4/A"_json_pointer),
 		data.at("/UAR/Pojemnik/KompozytRown/ARX4/B"_json_pointer),
-		data.at("/UAR/Pojemnik/KompozytRown/ARX4/OdchStd"_json_pointer),
-		data.at("/UAR/Pojemnik/KompozytRown/ARX4/k"_json_pointer)
+		data.at("/UAR/Pojemnik/KompozytRown/ARX4/k"_json_pointer),
+		data.at("/UAR/Pojemnik/KompozytRown/ARX4/OdchStd"_json_pointer)
 	);
 
 	kompRown->dodaj(arx4);
-
-	UAR.dodaj(kompRown);
+	
+	//UAR.dodaj(kompRown);
 
 	Komponent* PID = new RegulatorPID(
 		data.at("/UAR/PID/P"_json_pointer),

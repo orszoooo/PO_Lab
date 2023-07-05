@@ -3,10 +3,11 @@
 void Kompozyt::dodaj(Komponent* komp) {
 	pojemnik.push_back(komp);
 }
-void Kompozyt::usun(Komponent* komp) {
-	auto it = find_if(pojemnik.begin(), pojemnik.end(),
-		[komp](Komponent* obj) {return obj->getID() == komp->getID(); });
-	pojemnik.erase(it);
+void Kompozyt::usun() {
+	while (!pojemnik.empty()) {
+		delete pojemnik.back();
+		pojemnik.pop_back();
+	}
 }
 
 double Kompozyt::symuluj(double u) {
